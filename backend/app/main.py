@@ -1,7 +1,9 @@
 import time
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from app.utils.csv_processor import CSVProcessor
 from app.services.analysis_engine import AnalysisEngine
 from app.services.graph_service import GraphService
@@ -24,16 +26,110 @@ app.add_middleware(
 # Store latest analysis result for export
 latest_result = None
 
+
 @app.get("/")
 @app.head("/")
 async def root():
-    return {
-        "status": "online",
-        "engine": "RIFT 2026 Money Mule Detection v1.0",
-        "patterns": ["circular_fund_routing", "smurfing_patterns", "layered_shell_networks"],
-        "docs": "https://muleengine-pro.onrender.com/docs",
-        "api_endpoint": "/analyze"
-    }
+    """Welcome page with API documentation and quick start guide"""
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>MuleEngine-Pro | RIFT 2026</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 800px;
+                width: 100%;
+                padding: 40px;
+                text-align: center;
+            }
+            h1 { color: #333; font-size: 2.5em; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 1.1em; margin-bottom: 30px; }
+            .status { 
+                background: #10b981; 
+                color: white; 
+                padding: 10px 20px; 
+                border-radius: 20px; 
+                display: inline-block;
+                margin-bottom: 30px;
+                font-weight: bold;
+            }
+            .links {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            .btn {
+                padding: 15px 25px;
+                border: none;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 1em;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+                font-weight: 600;
+            }
+            .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+            .btn-primary { background: #667eea; color: white; }
+            .btn-secondary { background: #764ba2; color: white; }
+            .info { 
+                background: #f3f4f6; 
+                padding: 20px; 
+                border-radius: 8px;
+                text-align: left;
+                margin-top: 20px;
+            }
+            .info h3 { color: #333; margin-bottom: 10px; }
+            .info code { background: #e5e7eb; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+            .patterns { color: #666; margin: 15px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚨 MuleEngine-Pro</h1>
+            <p class="subtitle">Money Muling Detection Engine | RIFT 2026</p>
+            <div class="status">✓ API Online</div>
+            
+            <div class="links">
+                <a href="/docs" class="btn btn-primary">📚 API Docs (Swagger)</a>
+                <a href="/redoc" class="btn btn-secondary">📖 ReDoc</a>
+            </div>
+            
+            <div class="info">
+                <h3>🎯 Quick Start:</h3>
+                <p><strong>Upload a CSV file to analyze transactions:</strong></p>
+                <p style="margin: 10px 0;"><code>POST /analyze</code></p>
+                <p style="font-size: 0.9em; color: #666;">CSV must include: transaction_id, sender_id, receiver_id, amount, timestamp</p>
+                
+                <div class="patterns" style="margin-top: 20px;">
+                    <strong>Detection Patterns:</strong>
+                    <ul style="list-style: none; text-align: center; margin-top: 10px;">
+                        <li>🔄 Circular Fund Routing</li>
+                        <li>👥 Smurfing Patterns</li>
+                        <li>🕸️ Layered Shell Networks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
 
 @app.post("/analyze")
 async def analyze_transactions(file: UploadFile = File(...)):
