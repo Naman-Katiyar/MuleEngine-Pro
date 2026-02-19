@@ -25,11 +25,14 @@ app.add_middleware(
 latest_result = None
 
 @app.get("/")
+@app.head("/")
 async def root():
     return {
         "status": "online",
         "engine": "RIFT 2026 Money Mule Detection v1.0",
-        "patterns": ["circular_fund_routing", "smurfing_patterns", "layered_shell_networks"]
+        "patterns": ["circular_fund_routing", "smurfing_patterns", "layered_shell_networks"],
+        "docs": "https://muleengine-pro.onrender.com/docs",
+        "api_endpoint": "/analyze"
     }
 
 @app.post("/analyze")
